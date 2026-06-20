@@ -9,7 +9,7 @@ Public API:
   - run: orchestrate the node (MediaMTX + one ffmpeg per camera).
 """
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 from .match import parse_match
 from .encoder import detect_encoder

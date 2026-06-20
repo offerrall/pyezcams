@@ -1,6 +1,6 @@
 # pyezcams
 
-**v0.1.0** · [PyPI](https://pypi.org/project/pyezcams/)
+**v0.1.1** · [PyPI](https://pypi.org/project/pyezcams/)
 
 Minimal (stdlib-only) toolkit to run a node that captures USB webcams and
 streams them over RTSP/WebRTC via [MediaMTX](https://github.com/bluenviron/mediamtx).
@@ -89,6 +89,10 @@ from pyezcams import (
   if any is missing.
 - **`detect_encoder() -> str | None`** — first H.264 encoder that passes a real
   1-frame test (`h264_nvenc > h264_qsv > h264_vaapi > h264_v4l2m2m > libx264`).
+  Hang-proof: each test is capped by `ENCODER_TEST_TIMEOUT` (10s). A hardware
+  encoder that hangs (broken driver/firmware) is discarded on timeout and the
+  detection falls through to the next candidate instead of blocking node
+  startup; software `libx264` always works as the final fallback.
 - **`detect_format(usb_path) -> str | None`** — `"H264"` (copy) or `"MJPG"`
   (re-encode), or `None`.
 - **`build_command(usb_path, alias, fmt, encoder, video_size=..., framerate=..., bitrate=...) -> list[str]`**
