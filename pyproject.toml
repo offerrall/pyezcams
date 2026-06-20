@@ -1,0 +1,22 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pyezcams"
+dynamic = ["version"]
+authors = [{ name = "Beltrán Offerrall Selma" }]
+description = "Minimal, stateless toolkit to capture USB webcams and stream them over RTSP/WebRTC via MediaMTX."
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+dependencies = []
+
+[project.scripts]
+pyezcams = "pyezcams.runner:main"
+
+[tool.hatch.version]
+path = "src/pyezcams/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pyezcams"]
