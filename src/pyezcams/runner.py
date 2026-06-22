@@ -12,6 +12,7 @@ import subprocess
 import sys
 import time
 
+from . import mediamtx
 from .prereqs import check_prerequisites
 from .match import parse_match
 from .encoder import detect_encoder
@@ -56,18 +57,24 @@ def run(config, video_size=VIDEO_SIZE, framerate=FRAMERATE):
         raise RuntimeError("no working H.264 encoder on this machine")
     log.info("encoder %s, capture %s@%s", encoder, video_size, framerate)
 
-    procs = _plan(config, encoder, video_size, framerate)
+    mtx_config = mediamtx.write_config()
+    log.info("mediamtx config: %s", mtx_config)
+
+    procs = _plan(config, encoder, video_size, framerate, mtx_config)
 
     signal.signal(signal.SIGINT, _handle_signal)
     signal.signal(signal.SIGTERM, _handle_signal)
 
-    _supervise(procs)
-    _shutdown(procs)
+    try:
+        _supervise(procs)
+    finally:
+        _shutdown(procs)
+        mediamtx.remove_config(mtx_config)
 
 
-def _plan(config, encoder, video_size, framerate):
+def _plan(config, encoder, video_size, framerate, mtx_config):
     """Build the children to supervise: MediaMTX + one ffmpeg per camera."""
-    procs = [_Proc("mediamtx", ["mediamtx"])]
+    procs = [_Proc("mediamtx", mediamtx.build_command(mtx_config))]
     for alias, path in parse_match(config).items():
         fmt = detect_format(path)
         if fmt is None:

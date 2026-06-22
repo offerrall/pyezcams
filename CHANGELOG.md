@@ -5,6 +5,18 @@ All notable changes to this project are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.2] - 2026-06-22
+
+### Fixed
+- Works out of the box with no manual MediaMTX setup. MediaMTX's internal
+  defaults (used when no `mediamtx.yml` is present) do not define an
+  `all_others` path, so it rejected every publish and read with
+  "path '<alias>' is not configured" (HTTP 400 to the ffmpeg publisher and to
+  WebRTC/HLS readers). pyezcams now writes a minimal temporary config enabling
+  the catch-all path (new `mediamtx.py` module) and launches MediaMTX pointing
+  at it; the temp config is removed on shutdown. All other MediaMTX defaults
+  (servers, ports) are unchanged.
+
 ## [0.1.1] - 2026-06-20
 
 ### Fixed
