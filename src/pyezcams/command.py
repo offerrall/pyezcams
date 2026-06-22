@@ -61,7 +61,7 @@ def _build_reencode(usb_path, alias, encoder, video_size, framerate, bitrate):
             "-probesize", "32", "-analyzeduration", "0",
             "-f", "v4l2", "-input_format", "mjpeg",
             "-video_size", video_size, "-framerate", framerate, "-i", usb_path,
-            "-c:v", "h264_qsv", "-b:v", bitrate, "-g", "60",
+            "-c:v", "h264_qsv", "-b:v", bitrate, "-g", "60", "-bf", "0",
             "-rtsp_transport", "tcp", "-f", "rtsp", f"{RTSP_BASE}/{alias}",
         ]
     if encoder == "h264_vaapi":
