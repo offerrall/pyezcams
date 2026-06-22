@@ -53,8 +53,5 @@ def _build_reencode(usb_path, alias, encoder, video_size, framerate, bitrate):
         "-f", "v4l2", "-input_format", "mjpeg",
         "-video_size", video_size, "-framerate", framerate, "-i", usb_path,
         "-c:v", encoder, "-b:v", bitrate, "-g", "60",
-        # Note: -pix_fmt yuv420p may misbehave on some encoders (e.g. qsv);
-        # kept as the safe default, flagged in case it needs removing.
-        "-pix_fmt", "yuv420p",
         "-rtsp_transport", "tcp", "-f", "rtsp", f"{RTSP_BASE}/{alias}",
     ]
