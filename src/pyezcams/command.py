@@ -45,6 +45,22 @@ def _build_copy(usb_path, alias, video_size, framerate):
 
 def _build_reencode(usb_path, alias, encoder, video_size, framerate, bitrate):
     """MJPG: re-encode with the detected hardware/software encoder."""
+    if encoder == "h264_vaapi":
+        # VAAPI needs the render device declared up front and the frames
+        # uploaded to the GPU (format=nv12,hwupload). It also rejects the
+        # software-style -b:v/-g/-bf flags, so those are omitted here.
+        return [
+            "ffmpeg", "-hide_banner", "-loglevel", "warning",
+            # Low-latency input flags for live capture.
+            "-fflags", "nobuffer", "-flags", "low_delay",
+            "-probesize", "32", "-analyzeduration", "0",
+            "-vaapi_device", "/dev/dri/renderD128",
+            "-f", "v4l2", "-input_format", "mjpeg",
+            "-video_size", video_size, "-framerate", framerate, "-i", usb_path,
+            "-vf", "format=nv12,hwupload",
+            "-c:v", encoder,
+            "-rtsp_transport", "tcp", "-f", "rtsp", f"{RTSP_BASE}/{alias}",
+        ]
     return [
         "ffmpeg", "-hide_banner", "-loglevel", "warning",
         # Low-latency input flags for live capture.

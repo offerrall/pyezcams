@@ -56,13 +56,24 @@ def _test_encoder(name):
     device, so a hung ffmpeg would also block everyone else — never leave one
     alive.
     """
-    cmd = [
-        "ffmpeg", "-hide_banner",
-        "-f", "lavfi", "-i", "testsrc=size=1280x720:rate=30",
-        "-frames:v", "1",
-        "-c:v", name,
-        "-f", "null", "-",
-    ]
+    if name == "h264_vaapi":
+        cmd = [
+            "ffmpeg", "-hide_banner",
+            "-vaapi_device", "/dev/dri/renderD128",
+            "-f", "lavfi", "-i", "testsrc=size=1280x720:rate=30",
+            "-vf", "format=nv12,hwupload",
+            "-frames:v", "1",
+            "-c:v", "h264_vaapi",
+            "-f", "null", "-",
+        ]
+    else:
+        cmd = [
+            "ffmpeg", "-hide_banner",
+            "-f", "lavfi", "-i", "testsrc=size=1280x720:rate=30",
+            "-frames:v", "1",
+            "-c:v", name,
+            "-f", "null", "-",
+        ]
     try:
         result = subprocess.run(
             cmd,
