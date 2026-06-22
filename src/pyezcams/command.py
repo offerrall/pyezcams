@@ -53,5 +53,6 @@ def _build_reencode(usb_path, alias, encoder, video_size, framerate, bitrate):
         "-f", "v4l2", "-input_format", "mjpeg",
         "-video_size", video_size, "-framerate", framerate, "-i", usb_path,
         "-c:v", encoder, "-b:v", bitrate, "-g", "60",
+        "-bf", "0",
         "-rtsp_transport", "tcp", "-f", "rtsp", f"{RTSP_BASE}/{alias}",
     ]
