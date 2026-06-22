@@ -44,14 +44,32 @@ def _build_copy(usb_path, alias, video_size, framerate):
 
 
 def _build_reencode(usb_path, alias, encoder, video_size, framerate, bitrate):
-    """MJPG: re-encode with the detected hardware/software encoder."""
+    """MJPG: re-encode with the detected hardware/software encoder.
+
+    h264_qsv: decode MJPG and encode H264 fully on Intel GPU via QSV
+              (~0 CPU). Requires -init_hw_device and -c:v mjpeg_qsv on input.
+    h264_vaapi: decode on CPU, upload frames to GPU via VAAPI for encode.
+    others (libx264, etc.): full software path.
+    """
+    if encoder == "h264_qsv":
+        # Full hardware path: MJPG decode + H264 encode both on Intel QSV GPU.
+        return [
+            "ffmpeg", "-hide_banner", "-loglevel", "warning",
+            "-init_hw_device", "qsv=qsv:hw",
+            "-c:v", "mjpeg_qsv",
+            "-fflags", "nobuffer", "-flags", "low_delay",
+            "-probesize", "32", "-analyzeduration", "0",
+            "-f", "v4l2", "-input_format", "mjpeg",
+            "-video_size", video_size, "-framerate", framerate, "-i", usb_path,
+            "-c:v", "h264_qsv", "-b:v", bitrate, "-g", "60",
+            "-rtsp_transport", "tcp", "-f", "rtsp", f"{RTSP_BASE}/{alias}",
+        ]
     if encoder == "h264_vaapi":
         # VAAPI needs the render device declared up front and the frames
         # uploaded to the GPU (format=nv12,hwupload). It also rejects the
         # software-style -b:v/-g/-bf flags, so those are omitted here.
         return [
             "ffmpeg", "-hide_banner", "-loglevel", "warning",
-            # Low-latency input flags for live capture.
             "-fflags", "nobuffer", "-flags", "low_delay",
             "-probesize", "32", "-analyzeduration", "0",
             "-vaapi_device", "/dev/dri/renderD128",
@@ -61,9 +79,9 @@ def _build_reencode(usb_path, alias, encoder, video_size, framerate, bitrate):
             "-c:v", encoder,
             "-rtsp_transport", "tcp", "-f", "rtsp", f"{RTSP_BASE}/{alias}",
         ]
+    # Software fallback (libx264, h264_v4l2m2m, etc.)
     return [
         "ffmpeg", "-hide_banner", "-loglevel", "warning",
-        # Low-latency input flags for live capture.
         "-fflags", "nobuffer", "-flags", "low_delay",
         "-probesize", "32", "-analyzeduration", "0",
         "-f", "v4l2", "-input_format", "mjpeg",
